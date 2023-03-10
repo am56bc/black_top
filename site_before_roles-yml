@@ -1,0 +1,91 @@
+---
+
+ - hosts: all
+   become: true
+   pre_tasks:
+
+   - name: install updates
+     tags: update
+     yum:
+       update_only: yes
+       update_cache: yes
+     when: ansible_distribution == "Centos"
+
+   - name: start httpd
+     tags: start
+     service:
+       name: httpd
+       state: started
+       enabled: yes
+   - name: install httpd package
+     tags: apache
+     yum:
+       name:
+        -httpd
+        -php
+       state: latest
+     when: ansible_distribution == "Centos"
+
+   - name: change email address for admin
+     tags: email
+     lineinfile:
+       path: /etc/httpd/conf/httpd.conf
+       regexp: '^ServerAdmin'
+       line: ServerAdmin somebody@somewhere.net
+     register: httpd
+
+   - name: restart httpd
+     tags: restart
+     service:
+       name: httpd
+       state: restarted
+     when: httpd.changed
+
+   - name: copy html file for site
+     tags: file
+     copy:
+       src: defaul_site.html
+       dest: /var/www/html/index.html
+       owner: root
+       group: root
+       mode: 0644
+
+   - name: install mariadb server package
+     tags: maria
+     yum:
+       name: mariadb
+       state: latest
+     when: ansible_distribution == "Centos"
+   
+   - name: install samba package
+     tags: samba
+     package:
+      name: samba
+      state: latest
+
+ - hosts: all
+   become: true
+   tasks:
+
+  - name: add ssh key for simone
+     authorized_key:
+       user: simone
+       key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP5cIrN4ALPGxdtnr3K5HDww/h4+dadB/YLmsH0YWnTS harry@valley"
+
+
+ - hosts: workstation 
+   become: true
+   tasks:
+
+   - name: install unzip
+     package:
+      name: unzip
+
+   - name: install terraform
+     unarchive:
+      src: https://releases.hashicorp.com/terraform/1.4.0/terraform_1.4.0_linux_amd64.zip
+      dest: /usr/local/bin
+      remote_src: yes
+      mode: 0755
+      owner: root
+      group: root
