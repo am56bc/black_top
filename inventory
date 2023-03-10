@@ -1,4 +1,7 @@
-student@192.168.4.228
+student@172.16.227.3
 
 [workstation]
-harry@192.168.4.200
+harry@172.16.225.138
+
+
+## starbucks is 172, library is 192 ##
