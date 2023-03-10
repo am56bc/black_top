@@ -1,0 +1,43 @@
+---
+
+ - hosts: all
+   become: true
+   pre_tasks:
+
+   - name: install updates
+     tags: update
+     yum:
+       update_only: yes
+       update_cache: yes
+     when: ansible_distribution == "Centos"
+
+   - name: install httpd package
+     tags: apache
+     yum:
+       name:
+        -httpd
+        -php
+       state: latest
+     when: ansible_distribution == "Centos"
+
+   - name: copy html file for site
+     tags: file
+     copy:
+       src: defaul_site.html
+       dest: /var/www/html/index.html
+       owner: root
+       group: root
+       mode: 0644
+
+   - name: install mariadb server package
+     tags: maria
+     yum:
+       name: mariadb
+       state: latest
+     when: ansible_distribution == "Centos"
+   
+   - name: install samba package
+     tags: samba
+     package:
+      name: samba
+      state: latest
