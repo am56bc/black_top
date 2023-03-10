@@ -11,6 +11,12 @@
        update_cache: yes
      when: ansible_distribution == "Centos"
 
+   - name: start httpd
+     tags: start
+     service:
+       name: httpd
+       state: started
+       enabled: yes
    - name: install httpd package
      tags: apache
      yum:
@@ -19,6 +25,21 @@
         -php
        state: latest
      when: ansible_distribution == "Centos"
+
+   - name: change email address for admin
+     tags: email
+     lineinfile:
+       path: /etc/httpd/conf/httpd.conf
+       regexp: '^ServerAdmin'
+       line: ServerAdmin somebody@somewhere.net
+     register: httpd
+
+   - name: restart httpd
+     tags: restart
+     service:
+       name: httpd
+       state: restarted
+     when: httpd.changed
 
    - name: copy html file for site
      tags: file
